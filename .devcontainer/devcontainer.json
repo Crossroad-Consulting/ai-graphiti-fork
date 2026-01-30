@@ -1,0 +1,4 @@
+{
+  "image": "ghcr.io/crossroad-consulting/devcontainers/base:latest",
+  "initializeCommand": "docker pull ghcr.io/crossroad-consulting/devcontainers/base:latest"
+}
