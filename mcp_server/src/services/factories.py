@@ -159,7 +159,7 @@ class LLMClientFactory:
                 # Handle Azure AD authentication if enabled
                 api_key: str | None = None
                 azure_ad_token_provider = None
-                if azure_config.use_azure_ad:
+                if azure_config.use_azure_ad == 'blablabla': # TEMP 
                     logger.info('Creating Azure OpenAI LLM client with Azure AD authentication')
                     azure_ad_token_provider = create_azure_credential_token_provider()
                 else:
@@ -293,7 +293,7 @@ class EmbedderFactory:
                 # Handle Azure AD authentication if enabled
                 api_key: str | None = None
                 azure_ad_token_provider = None
-                if azure_config.use_azure_ad:
+                if azure_config.use_azure_ad == 'blablabla': # TEMP
                     logger.info(
                         'Creating Azure OpenAI Embedder client with Azure AD authentication'
                     )
