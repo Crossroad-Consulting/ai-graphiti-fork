@@ -371,14 +371,18 @@ async def _resolve_with_llm(
     existing_nodes_context = [
         {
             **{
-                'idx': i,
                 'name': candidate.name,
                 'entity_types': candidate.labels,
             },
             **candidate.attributes,
         }
-        for i, candidate in enumerate(indexes.existing_nodes)
+        for candidate in indexes.existing_nodes
     ]
+
+    # Build name -> node mapping for resolving duplicates by name
+    existing_nodes_by_name: dict[str, EntityNode] = {
+        node.name: node for node in indexes.existing_nodes
+    }
 
     context = {
         'extracted_nodes': extracted_nodes_context,
@@ -424,7 +428,7 @@ async def _resolve_with_llm(
 
     for resolution in node_resolutions:
         relative_id: int = resolution.id
-        duplicate_idx: int = resolution.duplicate_idx
+        duplicate_name: str = resolution.duplicate_name
 
         if relative_id not in valid_relative_range:
             logger.warning(
@@ -444,14 +448,14 @@ async def _resolve_with_llm(
         extracted_node = extracted_nodes[original_index]
 
         resolved_node: EntityNode
-        if duplicate_idx == -1:
+        if not duplicate_name:
             resolved_node = extracted_node
-        elif 0 <= duplicate_idx < len(indexes.existing_nodes):
-            resolved_node = indexes.existing_nodes[duplicate_idx]
+        elif duplicate_name in existing_nodes_by_name:
+            resolved_node = existing_nodes_by_name[duplicate_name]
         else:
             logger.warning(
-                'Invalid duplicate_idx %s for extracted node %s; treating as no duplicate.',
-                duplicate_idx,
+                'Invalid duplicate_name %r for extracted node %s; treating as no duplicate.',
+                duplicate_name,
                 extracted_node.uuid,
             )
             resolved_node = extracted_node
@@ -645,13 +649,13 @@ async def _extract_entity_summary(
         edge_facts = '\n'.join(edge.fact for edge in edges if edge.fact)
         summary_with_edges = f'{summary_with_edges}\n{edge_facts}'.strip()
 
-    # Skip if no summary content
-    if not summary_with_edges:
+    # If we have summary content and it's short enough, use it directly
+    if summary_with_edges and len(summary_with_edges) <= MAX_SUMMARY_CHARS * 4:
+        node.summary = summary_with_edges
         return
 
-    # Only Summarize with an LLM if the facts make the summary too long
-    if len(summary_with_edges) <= MAX_SUMMARY_CHARS * 4:
-        node.summary = summary_with_edges
+    # Skip if no summary content and no episode to generate from
+    if not summary_with_edges and episode is None:
         return
 
     summary_context = _build_episode_context(
