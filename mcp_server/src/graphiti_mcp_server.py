@@ -149,6 +149,12 @@ API keys are provided for any language model operations.
 mcp = FastMCP(
     'Graphiti Agent Memory',
     instructions=GRAPHITI_MCP_INSTRUCTIONS,
+    transport_security=TransportSecuritySettings(
+        enable_dns_rebinding_protection=True,
+        # Add your specific gateway or domain here
+        allowed_hosts=["localhost:*", "127.0.0.1:*", "graphiti-test.braveglacier-2463ce46.swedencentral.azurecontainerapps.io:*", "graphiti-test.braveglacier-2463ce46.swedencentral.azurecontainerapps.io"],
+        allowed_origins=["http://localhost:*", "https://graphiti-test.braveglacier-2463ce46.swedencentral.azurecontainerapps.io:*","https://graphiti-test.braveglacier-2463ce46.swedencentral.azurecontainerapps.io"],
+    )
 )
 
 # Global services
